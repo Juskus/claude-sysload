@@ -1,0 +1,9 @@
+{
+  "name": "sysload",
+  "version": "0.1.0",
+  "description": "Live CPU, RAM, GPU, VRAM and disk load of this PC in a small pane beside the chat",
+  "author": { "name": "Janusz Marcinkowski" },
+  "license": "MIT",
+  "repository": "https://github.com/Juskus/claude-sysload",
+  "types": "./types/index.d.ts"
+}

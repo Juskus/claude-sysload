@@ -1,0 +1,6 @@
+{
+  "name": "claude-sysload",
+  "owner": { "name": "Janusz Marcinkowski" },
+  "description": "sysload: live CPU, RAM, GPU, VRAM and disk load beside the Claude Code chat",
+  "plugins": [{ "name": "sysload", "source": "./" }]
+}
