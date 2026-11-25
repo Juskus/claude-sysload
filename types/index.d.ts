@@ -15,14 +15,17 @@ export type Gpu = {
 }
 
 export type Sample = {
+  /** The time of the reading, already formatted in the system's locale. */
   at: string
+  /** The Windows culture name, such as `pl-PL` or `en-US`; empty when it could not be read. */
+  locale: string
   cpuPct: number | null
   ramUsedGb: number | null
   ramTotalGb: number | null
   gpu: Gpu | null
   drives: Drive[]
   gpuLock: string | null
-  error: string | null
+  errors: ('host' | 'hostParse' | 'gpu')[]
 }
 
 declare module 'claude-code' {

@@ -9,7 +9,8 @@ memory is the bottleneck.
 The pane opens by itself as a small widget in the desktop app. Type `/sysload` to open it again
 after closing it. Bars turn amber from 70% and red from 90%.
 
-The labels are in Polish.
+The labels follow the Windows language: Polish when the system culture is Polish (`pl-*`),
+English for every other culture. The time of the last reading uses the system's format.
 
 ## Requirements
 
@@ -20,9 +21,9 @@ The labels are in Polish.
 Readings stay on your computer: the mod runs `nvidia-smi` and one PowerShell query locally and
 sends nothing anywhere.
 
-The expanded pane also has a "Blokada GPU" line. It reads the lock directory of a personal
-delegation setup (`~/.claude/local/.gpu.lock`) and shows "wolna" (free) when that directory does
-not exist, which is the case on any other machine.
+The expanded pane also has a "GPU lock" line. It reads the lock directory of a personal
+delegation setup (`~/.claude/local/.gpu.lock`) and shows "free" when that directory does not
+exist, which is the case on any other machine.
 
 ## Install
 

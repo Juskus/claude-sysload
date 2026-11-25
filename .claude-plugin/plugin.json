@@ -1,6 +1,6 @@
 {
   "name": "sysload",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Live CPU, RAM, GPU, VRAM and disk load of this PC in a small pane beside the chat",
   "author": { "name": "Janusz Marcinkowski" },
   "license": "MIT",
