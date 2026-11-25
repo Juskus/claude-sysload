@@ -6,11 +6,20 @@ disk with its used space, free space and how busy it is. It refreshes every 5 se
 when you run local models next to Claude Code and want to see at a glance whether the GPU or
 memory is the bottleneck.
 
-The pane opens by itself as a small widget in the desktop app. Type `/sysload` to open it again
-after closing it. Bars turn amber from 70% and red from 90%.
+<img src="docs/screenshot.png" alt="The sysload pane expanded in the Claude desktop app: CPU, RAM, GPU and VRAM bars, then seven disks with used space, free space and busy time, the GPU lock state and the time of the last reading" width="392">
+
+The pane opens by itself as a small widget in the desktop app; expand it to see the disks. Type
+`/sysload` to open it again after closing it. Bars turn amber from 70% and red from 90%.
 
 The labels follow the Windows language: Polish when the system culture is Polish (`pl-*`),
-English for every other culture. The time of the last reading uses the system's format.
+English for every other culture. The time of the last reading uses the same language. To pick
+the language yourself, kept across sessions:
+
+```
+/sysload lang en
+/sysload lang pl
+/sysload lang auto
+```
 
 ## Requirements
 

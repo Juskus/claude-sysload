@@ -26,6 +26,8 @@ const TEXT = {
     reading: (at: string, s: number) => `Odczyt ${at}, co ${s} s`,
     opened: 'Panel obciążenia otwarty.',
     waits: (reason: string) => `Panel czeka na miejsce: ${reason}`,
+    langSet: (l: string) => `Język panelu: ${l}.`,
+    usage: 'Użycie: /sysload [lang auto|pl|en]',
     errors: { host: 'CPU/RAM/dyski: brak odczytu', hostParse: 'CPU/RAM: nieczytelny wynik', gpu: 'GPU: brak odczytu z nvidia-smi' },
   },
   en: {
@@ -43,11 +45,20 @@ const TEXT = {
     reading: (at: string, s: number) => `Read at ${at}, every ${s} s`,
     opened: 'Load pane opened.',
     waits: (reason: string) => `The pane waits for room: ${reason}`,
+    langSet: (l: string) => `Pane language: ${l}.`,
+    usage: 'Usage: /sysload [lang auto|pl|en]',
     errors: { host: 'CPU/RAM/disks: no reading', hostParse: 'CPU/RAM: unreadable output', gpu: 'GPU: no reading from nvidia-smi' },
   },
 } as const
 
-const textFor = (locale: string | undefined) => (/^pl\b/i.test(locale ?? '') ? TEXT.pl : TEXT.en)
+// The person's choice, kept across sessions: 'auto' follows the Windows culture.
+type Lang = 'auto' | 'pl' | 'en'
+const LANG_KEY = 'lang'
+let lang: Lang = 'auto' // mirrors the store, loaded at session start
+
+const textFor = (locale: string | undefined) =>
+  lang === 'pl' ? TEXT.pl : lang === 'en' ? TEXT.en : /^pl\b/i.test(locale ?? '') ? TEXT.pl : TEXT.en
+const localeFor = (locale: string) => (lang === 'pl' ? 'pl-PL' : lang === 'en' ? 'en-US' : locale)
 
 // One PowerShell call per period: CPU, RAM, fixed drives, physical-disk busy time, the
 // delegation setup's GPU lock and the system's culture. Printed as one JSON line.
@@ -136,6 +147,8 @@ const level = (pct: number) => (pct >= 90 ? '#d9534f' : pct >= 70 ? '#e0a35c' : 
 export const register: Register = on => {
   on('session.start', async ($, e, next) => {
     await $.command.register({ name: 'sysload', description: 'Show CPU, RAM, GPU and disk load / Pokaż obciążenie CPU, RAM, GPU i dysków' })
+    const stored = await $.store.get(LANG_KEY)
+    lang = stored === 'pl' || stored === 'en' ? stored : 'auto'
 
     let isBusy = false
     const poll = async () => {
@@ -157,7 +170,7 @@ export const register: Register = on => {
         } else errors.push('host')
         const gpu = gpuRun.status === 'fulfilled' && gpuRun.value.exitCode === 0 ? parseGpu(gpuRun.value.stdout) : null
         if (!gpu) errors.push('gpu')
-        await update($, sample, () => ({ at: clockTime(host.locale), gpu, ...host, errors }))
+        await update($, sample, () => ({ at: clockTime(localeFor(host.locale)), gpu, ...host, errors }))
       } finally {
         isBusy = false
       }
@@ -173,7 +186,21 @@ export const register: Register = on => {
     return next(e)
   })
 
-  on('command.run', { command: 'sysload' }, async $ => {
+  on('command.run', { command: 'sysload' }, async ($, e) => {
+    const words = e.args.trim().toLowerCase().split(/\s+/).filter(Boolean)
+    if (words[0] === 'lang') {
+      const choice = words[1]
+      if (choice !== 'auto' && choice !== 'pl' && choice !== 'en') return { text: textFor((await read($, sample))?.locale).usage }
+      lang = choice
+      await $.store.set(LANG_KEY, choice)
+      // Rewrite the reading so the pane redraws now, its clock in the new language.
+      await update($, sample, s => (s ? { ...s, at: clockTime(localeFor(s.locale)) } : s))
+      const t = textFor((await read($, sample))?.locale)
+      await $.ui.open({ id: PANE, title: t.title })
+      return { text: t.langSet(choice) }
+    }
+    if (words.length > 0) return { text: textFor((await read($, sample))?.locale).usage }
+
     const t = textFor((await read($, sample))?.locale)
     const opened = await $.ui.open({ id: PANE, title: t.title })
     return { text: opened.isPlaced ? t.opened : t.waits(opened.reason) }
@@ -191,13 +218,8 @@ export const register: Register = on => {
       pct === null ? (
         <Text dimColor>{label}: {t.noData}</Text>
       ) : Progress ? (
-        <Box flexDirection="column">
-          <Box flexDirection="row" justifyContent="space-between">
-            <Text size="footnote">{label}</Text>
-            <Text size="footnote" tabular>{valueText}</Text>
-          </Box>
-          <Progress label={label} value={pct} max={100} valueText={valueText} color={level(pct)} />
-        </Box>
+        // Progress draws its own label and value text above the bar.
+        <Progress label={label} value={pct} max={100} valueText={valueText} color={level(pct)} />
       ) : (
         <Text tabular>{label} {valueText}</Text>
       )
