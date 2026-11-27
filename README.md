@@ -30,6 +30,16 @@ the language yourself, kept across sessions:
 Readings stay on your computer: the mod runs `nvidia-smi` and one PowerShell query locally and
 sends nothing anywhere.
 
+If [Ollama](https://ollama.com) runs on the PC, the pane adds a "Local model" line: the model
+Ollama holds in memory and how fast it generates, in tokens per second. While a request is
+generating it shows the speed of the last 3 seconds; afterwards, the speed, length and age of the
+last finished request. The expanded pane adds the prompt reading speed, the share of accepted draft
+tokens when the model uses speculative decoding, and the last speed of every model seen so far. The
+mod reads the last 128 KB of Ollama's own log (`%LOCALAPPDATA%\Ollama\server.log`) and its local
+`/api/ps` endpoint; it sends no requests to the model, so the readings cost nothing. The speed
+lines come from Ollama's llama.cpp runner; a model on a runner that writes no such lines shows only
+its name.
+
 The expanded pane also has a "GPU lock" line. It reads the lock directory of a personal
 delegation setup (`~/.claude/local/.gpu.lock`) and shows "free" when that directory does not
 exist, which is the case on any other machine.
